@@ -97,7 +97,7 @@ export class BikeSharingApiStack extends cdk.Stack {
             {
                 architecture: lambda.Architecture.ARM_64,
                 runtime: lambda.Runtime.NODEJS_16_X,
-                entry: `${__dirname}/../lambdas/getMovieCastMember.ts`,
+                entry: `${__dirname}/../lambdas/getBikeByStationId.ts`,
                 timeout: cdk.Duration.seconds(10),
                 memorySize: 128,
                 environment: {
