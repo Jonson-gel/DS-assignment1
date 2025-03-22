@@ -1,0 +1,88 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "definitions": {
+        "Bike": {
+            "additionalProperties": false,
+            "properties": {
+                "batteryLevel": {
+                    "type": "number"
+                },
+                "bikeId": {
+                    "type": "number"
+                },
+                "lastUsed": {
+                    "type": "string"
+                },
+                "stationId": {
+                    "type": "number"
+                },
+                "status": {
+                    "enum": [
+                        "available",
+                        "in_use",
+                        "maintenance"
+                    ],
+                    "type": "string"
+                },
+                "type": {
+                    "enum": [
+                        "electric",
+                        "standard"
+                    ],
+                    "type": "string"
+                }
+            },
+            "required": [
+                "batteryLevel",
+                "bikeId",
+                "lastUsed",
+                "stationId",
+                "status",
+                "type"
+            ],
+            "type": "object"
+        },
+        "Station": {
+            "additionalProperties": false,
+            "properties": {
+                "availableBikes": {
+                    "type": "number"
+                },
+                "capacity": {
+                    "type": "number"
+                },
+                "location": {
+                    "additionalProperties": false,
+                    "properties": {
+                        "latitude": {
+                            "type": "number"
+                        },
+                        "longitude": {
+                            "type": "number"
+                        }
+                    },
+                    "required": [
+                        "latitude",
+                        "longitude"
+                    ],
+                    "type": "object"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "stationId": {
+                    "type": "number"
+                }
+            },
+            "required": [
+                "availableBikes",
+                "capacity",
+                "location",
+                "name",
+                "stationId"
+            ],
+            "type": "object"
+        }
+    }
+}
+
