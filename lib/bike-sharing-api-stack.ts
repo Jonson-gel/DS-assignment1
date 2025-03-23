@@ -15,8 +15,7 @@ export class BikeSharingApiStack extends cdk.Stack {
         // Tables 
         const bikesTable = new dynamodb.Table(this, "BikesTable", {
             billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
-            partitionKey: { name: "stationId", type: dynamodb.AttributeType.NUMBER },
-            sortKey: { name: "bikeId", type: dynamodb.AttributeType.NUMBER },
+            partitionKey: { name: "bikeId", type: dynamodb.AttributeType.NUMBER },
             removalPolicy: cdk.RemovalPolicy.DESTROY,
             tableName: "Bikes",
         });

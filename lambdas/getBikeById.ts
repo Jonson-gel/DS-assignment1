@@ -7,25 +7,24 @@ const ddbDocClient = createDDbDocClient();
 export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
   try {
     console.log("[EVENT]", JSON.stringify(event));
-    const parameters  = event?.pathParameters;
+    const parameters = event?.pathParameters;
+    // const stationId = parameters?.stationId ? parseInt(parameters.stationId) : undefined;
     const bikeId = parameters?.bikeId ? parseInt(parameters.bikeId) : undefined;
 
     if (!bikeId) {
       return {
-        statusCode: 404,
-        headers: {
-          "content-type": "application/json",
-        },
-        body: JSON.stringify({ Message: "Missing bike Id" }),
+        statusCode: 400,
+        body: JSON.stringify({ message: "Missing stationId or bikeId" }),
       };
     }
 
     const commandOutput = await ddbDocClient.send(
       new GetCommand({
         TableName: process.env.TABLE_NAME,
-        Key: { id: bikeId },
+        Key: { bikeId },
       })
     );
+
     console.log("GetCommand response: ", commandOutput);
     if (!commandOutput.Item) {
       return {
