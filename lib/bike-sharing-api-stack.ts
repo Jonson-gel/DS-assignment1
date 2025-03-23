@@ -183,7 +183,7 @@ export class BikeSharingApiStack extends cdk.Stack {
 
         // REST API 
         const api = new apig.RestApi(this, "RestAPI", {
-            description: "demo api",
+            description: "bike sharing api",
             deployOptions: {
                 stageName: "dev",
             },
@@ -194,6 +194,22 @@ export class BikeSharingApiStack extends cdk.Stack {
                 allowOrigins: ["*"],
             },
         });
+
+        //create API Key
+        const apiKey = api.addApiKey("BikeSharingApiKey", {
+            apiKeyName: "BikeSharingApiKey",
+        });
+
+        const plan = api.addUsagePlan("BikeSharingUsagePlan", {
+            name: "BikeUsagePlan",
+            throttle: { rateLimit: 10, burstLimit: 2 },
+        });
+
+        plan.addApiStage({
+            stage: api.deploymentStage,
+            api,
+        });
+        plan.addApiKey(apiKey);
 
         const bikesEndpoint = api.root.addResource("bikes");
         bikesEndpoint.addMethod(

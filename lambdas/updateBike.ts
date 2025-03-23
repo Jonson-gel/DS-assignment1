@@ -9,27 +9,39 @@ const isValidBodyParams = ajv.compile(schema.definitions["Bike"] || {});
 
 const ddbDocClient = createDDbDocClient();
 
-export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
+export const handler: APIGatewayProxyHandlerV2 = async (event) => {
   try {
     console.log("[EVENT]", JSON.stringify(event));
 
-    // const bikeId = event.pathParameters?.bikeId;
-    const body = event.body ? JSON.parse(event.body) : undefined;
-    const { bikeId, ...updatableFields } = body;
+    const API_KEY = event.headers?.["x-api-key"];
 
-    if (!bikeId) {
+    //check API Key
+    const queryParams = event?.queryStringParameters;
+    const apiKey = queryParams?.key;
+    if (!apiKey || apiKey !== API_KEY) {
       return {
-        statusCode: 400,
+        statusCode: 403,
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ message: "bikeId is required" }),
+        body: JSON.stringify({ message: "Forbidden: Invalid API Key" }),
       };
     }
 
+    //read Body
+    const body = event.body ? JSON.parse(event.body) : undefined;
     if (!body) {
       return {
         statusCode: 400,
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ message: "Bike update attributes are required" }),
+      };
+    }
+
+    const { bikeId, ...updatableFields } = body;
+    if (!bikeId) {
+      return {
+        statusCode: 400,
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ message: "bikeId is required" }),
       };
     }
 
@@ -85,12 +97,12 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
 
 function createDDbDocClient() {
   const ddbClient = new DynamoDBClient({ region: process.env.REGION });
-  const marshallOptions = {
-    convertEmptyValues: true,
-    removeUndefinedValues: true,
-    convertClassInstanceToMap: true,
-  };
-  const unmarshallOptions = { wrapNumbers: false };
-  const translateConfig = { marshallOptions, unmarshallOptions };
-  return DynamoDBDocumentClient.from(ddbClient, translateConfig);
+  return DynamoDBDocumentClient.from(ddbClient, {
+    marshallOptions: {
+      convertEmptyValues: true,
+      removeUndefinedValues: true,
+      convertClassInstanceToMap: true,
+    },
+    unmarshallOptions: { wrapNumbers: false },
+  });
 }

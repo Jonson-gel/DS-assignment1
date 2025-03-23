@@ -9,10 +9,43 @@ const isValidBodyParams = ajv.compile(schema.definitions["Bike"] || {});
 
 const ddbDocClient = createDDbDocClient();
 
-export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
+export const handler: APIGatewayProxyHandlerV2 = async (event) => {
   try {
-    // Print Event
     console.log("[EVENT]", JSON.stringify(event));
+
+    const API_KEY = event.headers?.["x-api-key"];
+    console.log("api key", API_KEY);
+    console.log("Event Headers:", JSON.stringify(event.headers, null, 2));
+
+    if (!API_KEY) {
+      return {
+        statusCode: 403,
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ message: "Forbidden: API Key Missing" }),
+      };
+    }
+
+    //check API Key
+    const queryParams = event?.queryStringParameters;
+    const apiKey = queryParams?.key;
+
+    if (apiKey !== API_KEY) {
+      return {
+        statusCode: 403,
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ message: "Forbidden: Invalid API Key" }),
+      };
+    }
+
+    if (!apiKey) {
+      return {
+        statusCode: 403,
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ message: "Forbidden: API Key Required" }),
+      };
+    }
+
+    //read Body
     const body = event.body ? JSON.parse(event.body) : undefined;
     if (!body) {
       return {
@@ -24,10 +57,8 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
 
     if (!isValidBodyParams(body)) {
       return {
-        statusCode: 500,
-        headers: {
-          "content-type": "application/json",
-        },
+        statusCode: 400,
+        headers: { "content-type": "application/json" },
         body: JSON.stringify({
           message: `Incorrect type. Must match Bike schema`,
           schema: schema.definitions["Bike"],
@@ -35,41 +66,29 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       };
     }
 
-    const commandOutput = await ddbDocClient.send(
+    //insert data in DynamoDB
+    await ddbDocClient.send(
       new PutCommand({
         TableName: process.env.TABLE_NAME,
         Item: body,
       })
     );
+
     return {
       statusCode: 201,
-      headers: {
-        "content-type": "application/json",
-      },
+      headers: { "content-type": "application/json" },
       body: JSON.stringify({ message: "Bike added" }),
     };
   } catch (error: any) {
-    console.log(JSON.stringify(error));
+    console.error(JSON.stringify(error));
     return {
       statusCode: 500,
-      headers: {
-        "content-type": "application/json",
-      },
+      headers: { "content-type": "application/json" },
       body: JSON.stringify({ error }),
     };
   }
 };
 
 function createDDbDocClient() {
-  const ddbClient = new DynamoDBClient({ region: process.env.REGION });
-  const marshallOptions = {
-    convertEmptyValues: true,
-    removeUndefinedValues: true,
-    convertClassInstanceToMap: true,
-  };
-  const unmarshallOptions = {
-    wrapNumbers: false,
-  };
-  const translateConfig = { marshallOptions, unmarshallOptions };
-  return DynamoDBDocumentClient.from(ddbClient, translateConfig);
+  return DynamoDBDocumentClient.from(new DynamoDBClient({ region: process.env.REGION }));
 }
