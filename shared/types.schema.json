@@ -10,35 +10,18 @@
                 "bikeId": {
                     "type": "number"
                 },
-                "lastUsed": {
-                    "type": "string"
-                },
                 "stationId": {
                     "type": "number"
                 },
                 "status": {
-                    "enum": [
-                        "available",
-                        "in_use",
-                        "maintenance"
-                    ],
-                    "type": "string"
-                },
-                "type": {
-                    "enum": [
-                        "electric",
-                        "standard"
-                    ],
-                    "type": "string"
+                    "type": "number"
                 }
             },
             "required": [
                 "batteryLevel",
                 "bikeId",
-                "lastUsed",
                 "stationId",
-                "status",
-                "type"
+                "status"
             ],
             "type": "object"
         },

@@ -12,8 +12,11 @@ const ddbDocClient = createDDbDocClient();
 export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
   try {
     console.log("[EVENT]", JSON.stringify(event));
-    
-    const bikeId = event.pathParameters?.bikeId;
+
+    // const bikeId = event.pathParameters?.bikeId;
+    const body = event.body ? JSON.parse(event.body) : undefined;
+    const { bikeId, ...updatableFields } = body;
+
     if (!bikeId) {
       return {
         statusCode: 400,
@@ -22,7 +25,6 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       };
     }
 
-    const body = event.body ? JSON.parse(event.body) : undefined;
     if (!body) {
       return {
         statusCode: 400,
@@ -42,19 +44,19 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       };
     }
 
-    const updateExpression = Object.keys(body)
+    const updateExpression = Object.keys(updatableFields)
       .map((key, index) => `#${key} = :value${index}`)
       .join(", ");
 
-    const expressionAttributeNames = Object.keys(body).reduce((acc, key) => {
-      acc[`#${key}`] = key;
-      return acc;
-    }, {} as Record<string, string>);
+    const expressionAttributeNames: Record<string, string> = {};
+    Object.keys(updatableFields).forEach((key) => {
+      expressionAttributeNames[`#${key}`] = key;
+    });
 
-    const expressionAttributeValues = Object.values(body).reduce((acc, value, index) => {
-      acc[`:value${index}`] = value;
-      return acc;
-    }, {} as Record<string, any>);
+    const expressionAttributeValues: Record<string, any> = {};
+    Object.entries(updatableFields).forEach(([key, value], index) => {
+      expressionAttributeValues[`:value${index}`] = value;
+    });
 
     await ddbDocClient.send(
       new UpdateCommand({

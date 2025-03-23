@@ -8,7 +8,6 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
   try {
     console.log("[EVENT]", JSON.stringify(event));
     const parameters = event?.pathParameters;
-    // const stationId = parameters?.stationId ? parseInt(parameters.stationId) : undefined;
     const bikeId = parameters?.bikeId ? parseInt(parameters.bikeId) : undefined;
 
     if (!bikeId) {
